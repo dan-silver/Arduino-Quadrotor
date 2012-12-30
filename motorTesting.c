@@ -22,9 +22,14 @@ void setup() {
 }
 
 void loop() {
-      for (int i=1050;i<=1450;i+=100) {
+      for (int i=1000;i<=1450;i+=5) {
         motor.writeMicroseconds(i);	
         Serial.println(i);
-        delay(2000);
+        delay(100);
+      }
+      for (int i=1450;i>=1000;i-=5) {
+        motor.writeMicroseconds(i);	
+        Serial.println(i);
+        delay(100);
       }
 }
