@@ -1,7 +1,11 @@
 //Calibrates the electronic speed controler (esc) and send different speeds to the motors
 #include <Servo.h>
+#include <SimpleTimer.h>
 
+SimpleTimer timer;
 Servo motor[4];
+
+int motorVelocities[4] = {1000};
 
 #define PIN_MOTOR_1	3
 #define PIN_MOTOR_2	5
@@ -21,12 +25,25 @@ void armSpeedControler() {
 
 //holds all motors at a constant speed
 void constantSpeed(int speed) {
-	motor[0].writeMicroseconds(speed);
-	motor[1].writeMicroseconds(speed);
-	motor[2].writeMicroseconds(speed);
-	motor[3].writeMicroseconds(speed);
-	Serial.print("Running motors at ");
+	for (int i=0;i<4;i++) {
+		motorVelocities[i] = speed;
+	}
+	Serial.print("Running all motors at ");
 	Serial.println(speed);
+}
+
+//sets a specific motor to a certain velocity
+void setVelocity(int motor, int velocity) {
+	motorVelocities[motor] = velocity;
+	Serial.print("Motor ");
+	Serial.print(motor);
+	Serial.print(" is running at ");
+	Serial.println(velocity);
+}
+
+//stops all motors
+void killAllMotors() {
+	constantSpeed(1000);
 }
 
 void setup() {
@@ -38,26 +55,14 @@ void setup() {
 	Serial.println("ESC calibration started"); 
 	armSpeedControler();
 	Serial.println("ESC calibration completed");
+	constantSpeed(1200);
+	timer.setTimeout(4000, killAllMotors);
 }
 
 void loop() {
-	constantSpeed(1050);
-/**	for (int i=1000;i<=1150;i+=5) {
-		motor[0].writeMicroseconds(i);
-		motor[1].writeMicroseconds(i);
-		motor[2].writeMicroseconds(i);
-		motor[3].writeMicroseconds(i);
-		Serial.println(i);
-		delay(100);
+	timer.run();
+	for (int i=0;i<4;i++) {
+		motor[i].writeMicroseconds(motorVelocities[i]);
 	}
-	for (int i=1150;i>=1000;i-=5) {
-		motor[0].writeMicroseconds(i);
-		motor[1].writeMicroseconds(i);
-		motor[2].writeMicroseconds(i);
-		motor[3].writeMicroseconds(i);
-		Serial.println(i);
-		delay(100);
-	}
-**/
 	delay(100);
 }
