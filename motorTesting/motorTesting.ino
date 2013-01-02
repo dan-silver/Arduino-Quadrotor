@@ -15,10 +15,9 @@ int motorVelocities[4] = {1000};
 void armSpeedControler() {
 	delay(3000);
 	Serial.println("Sending lowest throttle to all motors");
-	motor[0].writeMicroseconds(1000);
-	motor[1].writeMicroseconds(1000);
-	motor[2].writeMicroseconds(1000);
-	motor[3].writeMicroseconds(1000);
+        for (int i=0;i<4;i++) {
+          motor[i].writeMicroseconds(1000);
+        }
 	delay(2000);
 	Serial.println("Low throttle sent");
 }
@@ -46,6 +45,12 @@ void killAllMotors() {
 	constantSpeed(1000);
 }
 
+void startUpSequence() {
+	static int speed = 1050;
+	constantSpeed(speed);
+	speed+=100;
+}
+
 void setup() {
 	Serial.begin(9600);
 	motor[0].attach(PIN_MOTOR_1);
@@ -55,8 +60,11 @@ void setup() {
 	Serial.println("ESC calibration started"); 
 	armSpeedControler();
 	Serial.println("ESC calibration completed");
-	constantSpeed(1200);
-	timer.setTimeout(4000, killAllMotors);
+	timer.setTimeout(1000, startUpSequence);
+	timer.setTimeout(3000, startUpSequence);
+	timer.setTimeout(5000, startUpSequence);
+	timer.setTimeout(7000, startUpSequence);
+	timer.setTimeout(9000, killAllMotors);
 }
 
 void loop() {
