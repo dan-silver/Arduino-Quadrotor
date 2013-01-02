@@ -13,7 +13,6 @@ int motorVelocities[4] = {1000};
 #define PIN_MOTOR_4	11
 
 void armSpeedControler() {
-	delay(3000);
 	Serial.println("Sending lowest throttle to all motors");
         for (int i=0;i<4;i++) {
           motor[i].writeMicroseconds(1000);
