@@ -1,10 +1,9 @@
-//Calibrates the electronic speed controler (esc) and send different speeds to the motors
 #include <Servo.h>
 #include <SimpleTimer.h>
 
 #define PIN_MOTOR_0	3
-#define PIN_MOTOR_2	5
 #define PIN_MOTOR_1	9
+#define PIN_MOTOR_2	5
 #define PIN_MOTOR_3	11
 
 SimpleTimer timer;
