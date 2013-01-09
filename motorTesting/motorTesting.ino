@@ -2,33 +2,40 @@
 #include <Servo.h>
 #include <SimpleTimer.h>
 
+#define PIN_MOTOR_0	3
+#define PIN_MOTOR_2	5
+#define PIN_MOTOR_1	9
+#define PIN_MOTOR_3	11
+
 SimpleTimer timer;
 Servo motor[4];
 
-int motorVelocities[4] = {1000};
+int motorVelocities[4] = {0};
 
-#define PIN_MOTOR_1	3
-#define PIN_MOTOR_2	5
-#define PIN_MOTOR_3	9
-#define PIN_MOTOR_4	11
-
-
-
+/* Diagram for motor number assignments
+           0
+           |
+           |
+          ###
+3 --------###-------- 1
+          ###
+           |
+           |
+           2
+*/
 //Analog read pins
 const int xPin = 0;
 const int yPin = 1;
 const int zPin = 2;
 
-//The minimum and maximum values that came from
-//the accelerometer while standing still
-//You very well may need to change these
-int minVal =270;
-int maxVal =440;
+//accelerometer calibration
+const int minVal = 180;
+const int maxVal = 481;
 
-//to hold the caculated values
-double x;
-double y;
-double z;
+//accelerometer data
+int x;
+int y;
+int z;
 
 void armSpeedControler() {
 	Serial.println("Sending lowest throttle to all motors");
@@ -70,22 +77,24 @@ void startUpSequence() {
 
 void setup() {
 	Serial.begin(9600);
-	motor[0].attach(PIN_MOTOR_1);
-	motor[1].attach(PIN_MOTOR_2);
-	motor[2].attach(PIN_MOTOR_3);
-	motor[3].attach(PIN_MOTOR_4);
+	motor[0].attach(PIN_MOTOR_0);
+	motor[1].attach(PIN_MOTOR_1);
+	motor[2].attach(PIN_MOTOR_2);
+	motor[3].attach(PIN_MOTOR_3);
 	Serial.println("ESC calibration started"); 
 	armSpeedControler();
 	Serial.println("ESC calibration completed");
-	timer.setTimeout(1000, startUpSequence);
+        startUpSequence();
+/*	timer.setTimeout(1000, startUpSequence);
 	timer.setTimeout(3000, startUpSequence);
 	timer.setTimeout(5000, startUpSequence);
 	timer.setTimeout(7000, startUpSequence);
 	timer.setTimeout(9000, killAllMotors);
+*/
 }
 
 void readAccelerometer() {
-   //read the analog values from the accelerometer
+  //read the analog values from the accelerometer
   int xRead = analogRead(xPin);
   int yRead = analogRead(yPin);
   int zRead = analogRead(zPin);
@@ -111,11 +120,33 @@ void readAccelerometer() {
   Serial.println(z);
 }
 
+void balance() {
+  if (x > 180) { //increase power to motor 3, decrease to motor 1
+    motorVelocities[3] += 360-x;
+    motorVelocities[1] -= 360-x;
+  } else {  //increase power to motor 1, decrease to motor 3
+    motorVelocities[1] += x;
+    motorVelocities[3] -= x;
+  }
+  if (y > 180) { //increase power to motor 0, decrease to motor 2
+    motorVelocities[0] += 360 - x;
+    motorVelocities[2] -= 360 - x;    
+  } else {  //increase power to motor 2, decrease to motor 0
+    motorVelocities[2] += x;
+    motorVelocities[0] -= x;
+  }
+}
 void loop() {
 	timer.run();
         readAccelerometer();
+        balance();
 	for (int i=0;i<4;i++) {
 		motor[i].writeMicroseconds(motorVelocities[i]);
+                Serial.print(i);
+                Serial.print(": ");
+                Serial.print(motorVelocities[i]);
+                Serial.print(" | ");
 	}
+        Serial.println("");
 	delay(100);
 }
