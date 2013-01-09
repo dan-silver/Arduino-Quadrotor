@@ -9,7 +9,8 @@
 SimpleTimer timer;
 Servo motor[4];
 
-int motorVelocities[4] = {0};
+double targetMotorVelocities[4] = {0};
+double actualMotorVelocities[4] = {0};
 
 /* Diagram for motor number assignments
            0
@@ -48,7 +49,7 @@ void armSpeedControler() {
 //holds all motors at a constant speed
 void constantSpeed(int speed) {
 	for (int i=0;i<4;i++) {
-		motorVelocities[i] = speed;
+		targetMotorVelocities[i] = speed;
 	}
 	Serial.print("Running all motors at ");
 	Serial.println(speed);
@@ -56,7 +57,7 @@ void constantSpeed(int speed) {
 
 //sets a specific motor to a certain velocity
 void setVelocity(int motor, int velocity) {
-	motorVelocities[motor] = velocity;
+	targetMotorVelocities[motor] = velocity;
 	Serial.print("Motor ");
 	Serial.print(motor);
 	Serial.print(" is running at ");
@@ -111,28 +112,37 @@ void readAccelerometer() {
   z = RAD_TO_DEG * (atan2(-yAng, -xAng) + PI);
 
   //Output the caculations
-  Serial.print("x: ");
+/*  Serial.print("x: ");
   Serial.print(x);
   Serial.print(" | y: ");
   Serial.print(y);
   Serial.print(" | z: ");
-  Serial.println(z);
+  Serial.println(z);*/
 }
 
 void balance() {
+  double balanceScaler = 0.5;
   if (x > 180) { //increase power to motor 3, decrease to motor 1
-    motorVelocities[3] += 360-x;
-    motorVelocities[1] -= 360-x;
+    actualMotorVelocities[3] = targetMotorVelocities[3] + (360-x) * balanceScaler;
+    actualMotorVelocities[1] = targetMotorVelocities[1] - (360-x) * balanceScaler;
+     Serial.print("x=");
+     Serial.print(x);
+    Serial.print(" | Power change = ");
+    Serial.println(360-x);
   } else {  //increase power to motor 1, decrease to motor 3
-    motorVelocities[1] += x;
-    motorVelocities[3] -= x;
+    actualMotorVelocities[1] = targetMotorVelocities[1] + x * balanceScaler;
+    actualMotorVelocities[3] = targetMotorVelocities[3] - x * balanceScaler;
+     Serial.print("x=");
+     Serial.print(x);
+    Serial.print(" | Power change = ");
+    Serial.println(x);
   }
   if (y > 180) { //increase power to motor 0, decrease to motor 2
-    motorVelocities[0] += 360 - y;
-    motorVelocities[2] -= 360 - y;    
+    actualMotorVelocities[0] = targetMotorVelocities[0] + (360 - y) * balanceScaler;
+    actualMotorVelocities[2] = targetMotorVelocities[2] - (360 - y) * balanceScaler;    
   } else {  //increase power to motor 2, decrease to motor 0
-    motorVelocities[2] += y;
-    motorVelocities[0] -= y;
+    actualMotorVelocities[2] = targetMotorVelocities[2] + y * balanceScaler;
+    actualMotorVelocities[0] = targetMotorVelocities[0] - y * balanceScaler;
   }
 }
 void loop() {
@@ -140,12 +150,11 @@ void loop() {
         readAccelerometer();
         balance();
 	for (int i=0;i<4;i++) {
-		motor[i].writeMicroseconds(motorVelocities[i]);
-                Serial.print(i);
-                Serial.print(": ");
-                Serial.print(motorVelocities[i]);
-                Serial.print(" | ");
+		motor[i].writeMicroseconds(actualMotorVelocities[i]);
 	}
-        Serial.println("");
-	delay(100);
+        Serial.print("3: ");
+        Serial.print(actualMotorVelocities[3]);
+        Serial.print(" | 1:");
+        Serial.println(actualMotorVelocities[1]);
+	delay(500);
 }
