@@ -129,11 +129,11 @@ void balance() {
     motorVelocities[3] -= x;
   }
   if (y > 180) { //increase power to motor 0, decrease to motor 2
-    motorVelocities[0] += 360 - x;
-    motorVelocities[2] -= 360 - x;    
+    motorVelocities[0] += 360 - y;
+    motorVelocities[2] -= 360 - y;    
   } else {  //increase power to motor 2, decrease to motor 0
-    motorVelocities[2] += x;
-    motorVelocities[0] -= x;
+    motorVelocities[2] += y;
+    motorVelocities[0] -= y;
   }
 }
 void loop() {
